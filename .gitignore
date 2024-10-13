@@ -1,0 +1,47 @@
+# Global Node.js ignores
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+yarn.lock
+package-lock.json
+.pnpm-lock.yaml
+
+# Global log files
+logs
+*.log
+
+# Global OS generated files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Ignore build folders globally
+dist/
+build/
+.next/
+out/
+.cache/
+coverage/
+
+# Ignore backend-specific files (chatbot-app-backend)
+chatbot-app-backend/node_modules/
+chatbot-app-backend/.env
+chatbot-app-backend/.env.local
+chatbot-app-backend/.env.*.local
+chatbot-app-backend/logs/
+chatbot-app-backend/dist/
+chatbot-app-backend/.cache/
+chatbot-app-backend/.nyc_output/
+
+# Ignore frontend-specific files (chatbot-app-frontend)
+chatbot-app-frontend/node_modules/
+chatbot-app-frontend/.env
+chatbot-app-frontend/.env.local
+chatbot-app-frontend/.env.*.local
+chatbot-app-frontend/out/
+chatbot-app-frontend/.next/
+chatbot-app-frontend/.cache/
