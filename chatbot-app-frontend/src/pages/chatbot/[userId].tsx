@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import {
   Container,
   Box,
@@ -8,6 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import axios from "axios";
 
 const Chatbot = () => {
   const [message, setMessage] = useState("");
@@ -15,27 +17,61 @@ const Chatbot = () => {
     { text: string; sender: "user" | "bot" }[]
   >([]);
   const messageEndRef = useRef<null | HTMLDivElement>(null);
+  const router = useRouter();
+  const { userId } = router.query; 
 
   useEffect(() => {
-    // Scroll to the bottom when new messages arrive
+    const fetchChatHistory = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/chat/history", {
+          params: { userId },
+          withCredentials: true, 
+        });
+        console.log("Chat History Response:", response.data);
+        const conversation = response.data.map((msg: any) => ({
+          text: msg.message,
+          sender: msg.sender,
+        }));
+        setChatHistory(conversation);
+      } catch (error) {
+        console.error("Error fetching chat history:", error);
+      }
+    };
+
+    if (userId) {
+      fetchChatHistory(); 
+    }
+  }, [userId]);
+
+  useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      // Add user message
       setChatHistory([...chatHistory, { text: message, sender: "user" }]);
 
-      // Simulate bot response
-      setTimeout(() => {
+      try {
+        const response = await axios.post(
+          `http://localhost:3001/chat/message`,
+          { userId, message },
+          { withCredentials: true } // Send cookies with the request
+        );
+
+        setChatHistory((prev) => [
+          ...prev,
+          { text: response.data.botResponse, sender: "bot" },
+        ]);
+      } catch (error) {
+        console.error("Error sending message to chatbot:", error);
         setChatHistory((prev) => [
           ...prev,
           {
-            text: "I’m just a bot! I'll forward this to a human.",
+            text: "Sorry, something went wrong. Please try again later.",
             sender: "bot",
           },
         ]);
-      }, 1000);
+      }
 
       setMessage(""); // Clear input after sending
     }

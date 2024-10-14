@@ -7,45 +7,42 @@ import {
   Button,
   Typography,
   Box,
-  Alert,
+  Paper,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Image from "next/image";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [error, setError] = useState(""); // State to store error message
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     try {
-      const res = await axios.post(
+      const response = await axios.post(
         "http://localhost:3001/auth/login",
-        formData
+        {
+          email,
+          password,
+        },
+        { withCredentials: true }
       );
-      localStorage.setItem("token", res.data.access_token);
-      router.push("/chatbot");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+      const { userId } = response.data;
+
+      // Redirect to /chatbot/:userId
+      router.push(`/chatbot/${userId}`);
     } catch (error) {
-      setError("Login failed. Please check your email and password.");
+      setError("Invalid credentials. Please try again.");
     }
   };
 
-  const handleRegister = () => {
-    router.push("/register");
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -60,7 +57,8 @@ const Login = () => {
       }}
     >
       <Container maxWidth="xs">
-        <Box
+        <Paper
+          elevation={6}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -73,83 +71,91 @@ const Login = () => {
         >
           {/* Logo Section */}
           <Box
-            sx={{
-              mb: 4,
-              height: 200,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            sx={{ mb: 4, height: 200, display: "flex", alignItems: "center" }}
           >
             <Image
               src="/eOncoHub.jpg"
               alt="Logo"
-              width={300}
-              height={250}
-              style={{ objectFit: "contain" }}
+              width={240}
+              height={180}
+              objectFit="contain"
             />
           </Box>
 
-          {/* Login Title */}
           <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
-            Sign in to your account
+            Login to Your Account
           </Typography>
 
-          {/* Display Error Message if Login Fails */}
+          {/* Display Error Message */}
           {error && (
-            <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
+            <Typography color="error" sx={{ mb: 2 }}>
               {error}
-            </Alert>
+            </Typography>
           )}
 
           {/* Login Form */}
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+          <Box
+            component="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+            sx={{ width: "100%" }}
+          >
             <TextField
               fullWidth
               label="Email"
-              name="email"
               variant="outlined"
               margin="normal"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
 
+            {/* Password Field with Show/Hide Toggle */}
             <TextField
               fullWidth
               label="Password"
-              name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               variant="outlined"
               margin="normal"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 2, mb: 2, py: 1.5, backgroundColor: "#4F46E5" }}
+              sx={{ mt: 3, mb: 2, py: 1.5, backgroundColor: "#4F46E5" }}
             >
-              Sign in
+              Login
+            </Button>
+
+            {/* Create Account Button */}
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => router.push("/register")}
+              sx={{ mt: 1, mb: 2, borderColor: "#4F46E5", color: "#4F46E5" }}
+            >
+              Create Account
             </Button>
           </Box>
-
-          {/* Divider */}
-          <Typography sx={{ my: 2 }}>or</Typography>
-
-          {/* Create Account Button */}
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleRegister}
-            sx={{ py: 1.5, borderColor: "#4F46E5", color: "#4F46E5" }}
-          >
-            Create account
-          </Button>
-        </Box>
+        </Paper>
       </Container>
     </Box>
   );
